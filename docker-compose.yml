@@ -1,0 +1,20 @@
+version: "3.8"
+
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-CU14-ubuntu-22.04
+    container_name: sqlserver-contoso
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_PID: "Developer"
+      MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD}
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqlserver-contoso-data:/var/opt/mssql
+      - ./backup:/var/opt/mssql/backup
+    restart: unless-stopped
+
+volumes:
+  sqlserver-contoso-data:
+    external: true
