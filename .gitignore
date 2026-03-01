@@ -1,2 +1,16 @@
+# secrets
 .env
+
+# python
+.venv/
+__pycache__/
+*.pyc
+
+# local data / outputs
+landing/
+
+# sql backups
 backup/
+
+# optional (pyenv)
+.python-version
