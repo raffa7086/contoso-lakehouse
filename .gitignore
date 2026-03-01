@@ -12,5 +12,7 @@ landing/
 # sql backups
 backup/
 
+state/
+
 # optional (pyenv)
 .python-version
