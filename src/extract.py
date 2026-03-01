@@ -54,7 +54,7 @@ def main() -> int:
     """
 
     # -------------------------
-    # 1) Validação de argumentos
+    # Validação de argumentos
     # -------------------------
     if len(sys.argv) < 2:
         print("Usage: python src/extract.py [schema].[table] [--mode full|incremental] [--window-days N]")
@@ -74,14 +74,14 @@ def main() -> int:
         window_days = int(sys.argv[sys.argv.index("--window-days") + 1])
 
     # -------------------------
-    # 2) Resolver diretórios
+    # Resolver diretórios
     # -------------------------
     base_dir = Path(__file__).resolve().parent.parent
     landing_dir = base_dir / "landing"
     landing_dir.mkdir(parents=True, exist_ok=True)
 
     # -------------------------
-    # 3) Carregar credenciais
+    # Carregar credenciais
     # -------------------------
     load_dotenv(base_dir / ".env")
     password = os.getenv("MSSQL_INGEST_PASSWORD")
@@ -91,7 +91,7 @@ def main() -> int:
         return 2
 
     # -------------------------
-    # 4) String de conexão
+    # String de conexão
     # -------------------------
     conn_str = (
         "DRIVER={ODBC Driver 18 for SQL Server};"
@@ -134,7 +134,7 @@ def main() -> int:
         return 4
 
     # =========================
-    # 5) Carregar watermark
+    # Carregar watermark
     # =========================
     state_path = base_dir / "state" / "Data_Sales.json"
     state = _load_state(state_path)
@@ -150,7 +150,7 @@ def main() -> int:
     start_str = start_dt.strftime("%Y-%m-%d")
 
     # =========================
-    # 6) Query incremental
+    # Query incremental
     # =========================
     query = f"SELECT * FROM Data.Sales WHERE OrderDate >= '{start_str}'"
 
@@ -162,10 +162,10 @@ def main() -> int:
         return 0
 
     # =========================
-    # 7) Escrita particionada por DIA (OrderDate)
+    # Escrita particionada por DIA (OrderDate)
     # =========================
     # Ao invés de reescrever um arquivo gigante (Data_Sales.parquet),
-    # vamos escrever por partição:
+    # Escrever por partição:
     # landing/Data_Sales/OrderDate=YYYY-MM-DD/data.parquet
 
     sales_root = landing_dir / "Data_Sales"
@@ -174,7 +174,7 @@ def main() -> int:
     # Garantir que OrderDate é date (não string)
     df_new["OrderDate"] = pd.to_datetime(df_new["OrderDate"]).dt.date
 
-    # Para cada dia presente no lote incremental, reprocessamos só aquele dia
+    # Para cada dia presente no lote incremental
     for order_date, df_day_new in df_new.groupby("OrderDate"):
         part_dir = sales_root / f"OrderDate={order_date.isoformat()}"
         part_dir.mkdir(parents=True, exist_ok=True)
@@ -191,11 +191,11 @@ def main() -> int:
         # PK composta da Sales: (OrderKey, LineNumber)
         df_day_all = df_day_all.drop_duplicates(subset=["OrderKey", "LineNumber"], keep="last")
 
-        # Escrita atômica só daquela partição
+        # Escrita atômica
         _atomic_write_parquet(df_day_all, part_file)
 
     # =========================
-    # 8) Atualizar watermark
+    # Atualizar watermark
     # =========================
     max_order_date = pd.to_datetime(df_new["OrderDate"]).max().date()
 
@@ -210,9 +210,6 @@ def main() -> int:
 
     return 0
 
-
-# =========================
-# Entry point do script
 # =========================
 if __name__ == "__main__":
     raise SystemExit(main())

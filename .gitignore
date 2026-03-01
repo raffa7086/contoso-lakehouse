@@ -8,11 +8,11 @@ __pycache__/
 
 # local data / outputs
 landing/
+bronze/
+state/
 
 # sql backups
 backup/
-
-state/
 
 # optional (pyenv)
 .python-version
